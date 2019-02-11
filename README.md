@@ -304,14 +304,14 @@ done with a debug probe.
 
 # Licenses
 
-i. **nRF5 SDK license:** The majority of the source code included in the nRF5 SDK in src/nrf5 (nRF5_Nordic_license.txt)
+i. **nRF5 SDK license:** The majority of the source code included in the nRF5 SDK in `src/nrf5` (`nRF5_Nordic_license.txt`)
 
-ii. **SoftDevice license:** The SoftDevice and its headers (src\nrf5\components\softdevice\s140\doc\license_file)
+ii. **SoftDevice license:** The SoftDevice and its headers (`src\nrf5\components\softdevice\s140\doc\license_file`)
 
-iii. **ARM 3-clause BSD license:** CMSIS and system files (src\nrf5\components\toolchain)
+iii. **ARM 3-clause BSD license:** CMSIS and system files (`src\nrf5\components\toolchain`)
 
-iv. **Third-party licenses:** All third-party code contained in src\nrf5\external (respective licenses included in each of the imported projects)
+iv. **Third-party licenses:** All third-party code contained in `src\nrf5\external` (respective licenses included in each of the imported projects)
 
-v. **The MIT License** Header and source files in src\rokix
+v. **The MIT License** Header and source files in `src\rokix`
 
-vi. **The MIT License** Python code under client\ folder
+vi. **The MIT License** Python code under `client\` folder
