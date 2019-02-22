@@ -1,14 +1,13 @@
 # RoKiX Sensor Node example firmware for nRF5 SDK
 
-This repository contains an open source firmware example, provided by ROHM
-Semiconductor, that can be used with [RoKiX Sensor Nodes][rokix-sensor-node].
+This repository contains an example source code for firmware and client application that can be used with [RoKiX Sensor Nodes][rokix-sensor-node].
 
 [rokix-sensor-node]: https://www.kionix.com/news-detail/roki-sensor-node
 
 
 ## Description
 
-This open source example includes:
+This example includes:
 
 1. example client application which can
 
@@ -51,7 +50,7 @@ Usage: run `python receive_data.py`
 
 ### Firmware
 
-The RoKiX open source example firmware is based on the [nRF5 SDK
+The RoKiX example firmware is based on the [nRF5 SDK
 15.2.0][nrf-sdk] and all needed SDK source files are include in the
 project. When adding a new SDK module for the project, the nRF5 SDK must be
 downloaded and the required files must be included in the firmware project.
