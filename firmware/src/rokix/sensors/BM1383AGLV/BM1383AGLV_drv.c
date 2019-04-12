@@ -29,7 +29,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "sensors.h"
 #include "BM1383AGLV_drv.h"
-#include "BM1383AGLV_registers.h"
+#include "bm1383aglv_registers.h"
 
 
 /* Driver data struct */

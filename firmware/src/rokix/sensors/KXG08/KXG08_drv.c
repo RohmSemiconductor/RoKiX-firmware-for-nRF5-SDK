@@ -22,14 +22,13 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 #include <stdio.h> 
 #include <stddef.h>
 #include <stdint.h>
 
 #include "sensors.h"
 #include "KXG08_drv.h"
-#include "KXG08_registers.h"
+#include "kxg08_registers.h"
 
 
 /* Driver data struct */
@@ -617,5 +616,4 @@ uint8_t KXG08_debug_dump_regs()
 
     return RC_OK;
 }
-
 
