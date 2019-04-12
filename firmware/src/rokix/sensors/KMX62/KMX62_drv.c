@@ -30,7 +30,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sensors.h"
 #include "KMX62_drv.h"
 // KMX62_registers -> kmx62_registers.h
-#include "KMX62_registers.h"
+#include "kmx62_registers.h"
 
 
 /* Driver data struct */
