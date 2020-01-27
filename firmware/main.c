@@ -58,14 +58,18 @@
 #include "nrf_drv_clock.h"
 #include "nrf_delay.h"
 #include "nrf_drv_power.h"
-#include "app_usbd.h"
 
-#include "usb_serial.h"
+#include "usb.h"
 #include "ble_uart.h"
-#include "sensor_node_initialize.h"
 #include "platform_functions.h"
 #include "sensors.h"
+#ifdef K2_BOARD_CUSTOM
 #include "battery_measurement.h"
+#include "sensor_node_initialize.h"
+#endif
+#ifdef NRF52840_XXAA
+#include "usb_serial.h"
+#endif
 
 #define ADC_REF_VOLTAGE_IN_MILLIVOLTS  600  //!< Reference voltage (in milli volts) used by ADC while doing conversion.
 #define ADC_RES_12BIT                  4096 //!< Maximum digital value for 12-bit ADC conversion.
@@ -106,6 +110,7 @@ static void log_init(void)
 }
 
 
+#ifdef K2_BOARD_CUSTOM
 /**@brief Set Sensor node GPIOs to their default position.*/
 void sensor_node_board_init(void)
 {
@@ -120,6 +125,7 @@ void sensor_node_board_init(void)
     uarte_input_pins_init();
     power_control_init();
 }
+#endif
 
 
 /**@brief Initialize clock driver.*/
@@ -154,7 +160,7 @@ void application_event_handler(void * p_event_data, uint16_t event_size)
             /* Add sensor ID check here for passing certain sensor data to USB or BLE*/
             if(event->app_events.sensor_evt.sensor_id == KX122_ID) {
                 ble_uart_tx(data, size);
-                usb_serial_tx(data, size);
+                usb_tx(data, size);
             }
         }
     } else if(event->type == EVENT_BATTERY_MEASUREMENT) {
@@ -251,8 +257,10 @@ int main(void)
     /*nRF logging is enabled.*/
     log_init(); 
     
+#ifdef K2_BOARD_CUSTOM
     /*Board init, gpio default values are set.*/
     sensor_node_board_init();
+#endif
     
     /*Init platform peripherals*/
     nrf52_timers_init();
@@ -266,27 +274,34 @@ int main(void)
     scheduler_init();
 
     /*Input pin configure example.*/
-    configure_gpio_as_input_example();
+    //configure_gpio_as_input_example();
     /*Output pin configure example.*/
-    configure_gpio_as_output_example();
+    //configure_gpio_as_output_example();
     
-    /*Init USB serial and BLE uart.*/
-    usb_serial_init();
+    /* Init USB serial and BLE uart.
+     * The order of these calls is important to make sure that the power
+     * events are initialized correctly. */
+    usb_init();
     ble_uart_init();
+#ifdef NRF52840_XXAA
     usbd_serial_power_events_enable();
+#endif
     
     nrf52_twi_init();
     /*Sensor driver initialize, default KX122.*/
     nrf52_platform_functions_init();
     sensors_init(&nrf52_funcs);
 
-    /*Init and start battery measurement example.*/
+#ifdef K2_BOARD_CUSTOM
+    /* Init and start battery measurement example.
+     * Only available on RoKiX Sensor Node. */
     battery_measurement_init();
     battery_measurement_start();
+#endif
 
     for (;;)
     {
-        while (app_usbd_event_queue_process())
+        while (usb_process_queue())
         {
             /* Nothing to do */
         }

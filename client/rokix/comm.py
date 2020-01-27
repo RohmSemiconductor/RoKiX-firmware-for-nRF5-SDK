@@ -224,6 +224,18 @@ class SerialConnection(PySerialConnection):
         config (dict): Connection configuration.
         baudrate (int): Baud rate.
     """
+    # pyserial configurations for known devices.
+    # Indexed with (vid, pid) tuples.
+    _PORT_CONFIGS = {
+        # nRF52840-DK and RoKiX Sensor Node (USB CDC-ACM)
+        (1205, 1538): {},
+        # nRF52-DK (nRF52 UART bridged over JLink)
+        (4966, 4117): {
+            'baudrate': 1000000,
+            'dsrdtr': True,
+        },
+    }
+
     def __init__(self, config=None):
         PySerialConnection.__init__(self)
 
@@ -235,7 +247,10 @@ class SerialConnection(PySerialConnection):
                 (e.g. 'COM9' or '/dev/ttyACM0').
             timeout (float, optional): Read timeout in seconds.
         """
-        self._ser_conn = serial.Serial(port=comport, timeout=timeout)
+        port = self._find_port_by_dev_name(comport)
+        extra_args = self._PORT_CONFIGS.get((port.vid, port.pid), {})
+        self._ser_conn = serial.Serial(port=port.device, timeout=timeout,
+                                       **extra_args)
 
     def get_com_port(self):
         """Autodetect connected serial devices and return their names.
@@ -256,7 +271,7 @@ class SerialConnection(PySerialConnection):
             LOGGER.debug(port.pid)
 
             # matcing port found based in vid and pid?
-            if port.vid == 1205 and port.pid == 1538:
+            if (port.vid, port.pid) in self._PORT_CONFIGS:
                 matching_ports.append(port.device)
                 continue
 
@@ -265,5 +280,8 @@ class SerialConnection(PySerialConnection):
 
         return matching_ports
 
-
-
+    @staticmethod
+    def _find_port_by_dev_name(name):
+        for port in list_ports.comports():
+            if port.device == name:
+                return port

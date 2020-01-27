@@ -1,0 +1,3 @@
+# SEGGER Embedded Studio always saves files with LF line endings and the
+# files aren't usually edited by hand.
+*.emProject -text

@@ -28,7 +28,7 @@ class KX122(BaseSensor):
     def convert_sample(self, sample):
         """Convert a raw sample's values into g's."""
         # Calculated for a 2g range.
-        f = lambda x: (x * 3.99994) / (2**16 - 1)
+        f = lambda x: (x * 1.99994) / (2**15 - 1)
         names = ['acc_x', 'acc_y', 'acc_z']
         return OrderedDict(zip(names, map(f, sample.values())))
 
@@ -107,11 +107,11 @@ class KMX62(BaseSensor):
     @staticmethod
     def _convert_acceleration(value):
         # This equation is only valid for a 2g range.
-        return (value * 3.99994) / (2**16 - 1)
+        return (value * 1.99994) / (2**15 - 1)
 
     @staticmethod
     def _convert_magnetic_field(value):
-        return (value * 2399.9634) / (2**16 - 1)
+        return (value * 1199.96338) / (2**15 - 1)
 
     @staticmethod
     def _convert_temp(value):
@@ -122,7 +122,7 @@ class BM1383AGLV(BaseSensor):
     def __init__(self, connection):
         self._conn = connection
         # Unpack format for struct.unpack().
-        self._unpack_fmt = '>BHBh'
+        self._unpack_fmt = '>BBBBh'
         self._read_size = struct.calcsize(self._unpack_fmt)
 
     def read_raw_sample(self):
@@ -131,30 +131,32 @@ class BM1383AGLV(BaseSensor):
         return OrderedDict([
             ('status', unpacked_data[0]),
             # Pressure.
-            ('pres', unpacked_data[1]),
-            ('pres_xl', unpacked_data[2]),
+            ('pres_msb', unpacked_data[1]),
+            ('pres_lsb', unpacked_data[2]),
+            ('pres_xl', unpacked_data[3]),
             # Temperature.
-            ('temp', unpacked_data[3]),
+            ('temp', unpacked_data[4]),
         ])
 
     def convert_sample(self, sample):
         return OrderedDict([
             ('status', sample['status']),
-            ('pres_x'), self._convert_pressure(sample['pres_x'], sample['pres_xl']),
-            ('pres_y'), self._convert_pressure(sample['pres_y'], sample['pres_xl']),
-            ('pres_z'), self._convert_pressure(sample['pres_z'], sample['pres_xl']),
-            ('temp'), self._convert_temp(sample['temp']),
+            ('pres', self._convert_pressure(sample['pres_msb'],
+                                            sample['pres_lsb'],
+                                            sample['pres_xl'])),
+            ('temp', self._convert_temp(sample['temp'])),
         ])
 
     @staticmethod
-    def _convert_pressure(value, xl):
-        counts = ((value & 0xff00) >> 8) * 2**14 + (value & 0x00ff) * 2**6 + xl
+    def _convert_pressure(msb, lsb, xl):
+        # The result is in hPa.
+        counts = (msb * 2**14) + (lsb * 2**6) + (xl & 0x1f)
         return counts / 2048
 
     @staticmethod
     def _convert_temp(value):
-        counts = ((value & 0xff00) >> 8) * 2**8 + value & 0x00ff
-        return counts / 32
+        # The result is in degrees Celsius.
+        return value / 32
 
 
 class BM1422GMV(BaseSensor):

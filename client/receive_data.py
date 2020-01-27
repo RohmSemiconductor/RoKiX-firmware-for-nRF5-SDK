@@ -20,6 +20,8 @@ def conn_ble(mac_address_str=None):
     else:
         raise RuntimeError('BLE is not supported on %s' % sys.platform)
 
+    if mac_address_str is not None:
+        mac_address_str = mac_address_str.upper()
     conn.initialize(mac_address=mac_address_str)
     return conn
 

@@ -1,6 +1,8 @@
 # RoKiX Sensor Node example firmware for nRF5 SDK
 
-This repository contains an example source code for firmware and client application that can be used with [RoKiX Sensor Nodes][rokix-sensor-node].
+This repository contains an example source code for firmware and client
+application that can be used with [RoKiX Sensor Nodes][rokix-sensor-node] and
+Nordic Semiconductor's nRF52-series DK boards: nRF52832-DK and nRF52840-DK.
 
 [rokix-sensor-node]: https://www.kionix.com/news-detail/roki-sensor-node
 
@@ -11,10 +13,10 @@ This example includes:
 
 1. example client application which can
 
-    - connect to a RoKiX Sensor Node via USB and Bluetooth LE
-    - receive data from a RoKiX Sensor Node
+    - connect to a RoKiX Sensor Node or DK board via USB and Bluetooth LE
+    - receive data from a RoKiX Sensor Node or DK board
 
-2. example firmware for RoKiX Sensor Node which can 
+2. example firmware which can 
 
     - read sensor data using I2C digital bus
     - read and write GPIO lines
@@ -30,22 +32,31 @@ data sent by the firmware. The client code is in the `client` directory.
 Set-up:
 
 1. Open a shell (e.g. `cmd.exe`) and change directory to `client`
+
 2. Run `python -m pip install -r requirements.txt`
 
     2.1. If using a Bluetooth LE connection, run
          `python -m pip install -r requirements-Linux-BLE.txt`
 
-3. By default, the example application connects to the RoKiX sensor node via USB
+3. By default, the example application connects to the firmware via USB
    and reads three 16-bit signed values in a loop. The following options are
    supported:
 
     3.1 The connection can be changed to Bluetooth LE. **Note** that the `mac`
-        variable must be updated to match with the MAC address of the used RoKiX
-        Sensor Node used in `connect()`.
+        variable must be updated to match with the MAC address of the used
+        device in `connect()`. Use `B2S.exe --list` command for discovering the device MAC address.​ 
 
     3.2 Print sensor data in SI units instead of raw data.
 
-Usage: run `python receive_data.py`
+Usage:
+
+1. Connect the device to the computer. Note that
+    - the nRF52840-DK uses the *nRF USB* Micro-USB connector for data (the
+      other Micro-USB connector is for debugging and flashing)
+    - with BLE, the device must be paired first (the device name is "RoKiX
+      Sensor Node template")
+
+2. Run `python receive_data.py`
 
 
 ### Firmware
@@ -65,12 +76,23 @@ are free to modify.
 
 Following connections are supported for sending sensor data, e.g. to a PC:
     
-- USB virtual port (CDC-ACM)
+- USB virtual port (CDC-ACM) (only on RoKiX Sensor Node and nRF52840-DK)
+- USB UART (using J-Link as a USB-UART bridge) (on nRF52832-DK)
 - BLE UART service
 
 [nrf-sdk]: https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download
 [nrf-app-sched]: https://devzone.nordicsemi.com/tutorials/b/software-development-kit/posts/scheduler-tutorial
 
+
+
+GPIOs defined for Nordic DK board:
+
+| Name                  | GPIO  |
+| --------------------- | ----- |
+| I2C SCL               | P0.27 |
+| I2C SDA               | P0.26 |
+| Sensor INT (nRF52832) | P0.16 |
+| Sensor INT (nRF52840) | P1.06 |
 
 #### Sensor-data usage
 
@@ -83,7 +105,10 @@ The following sensor drivers are implemented:
 - BM1383AGLV - BM1383AGLV is piezo-resistive pressure sensor.
 - BM1422GMV - Tri-axis magnetometer.
 
-Data is read from every sensor. By default, the KX122 sensor data is passed to
+File `\firmware\src\rokix\sensors\sensors.h` contains enable flags for the
+supported sensors. On the RoKiX Sensor Node, all sensors can be enabled
+simultaneously. On the DK boards, only one sensor should be enabled at a
+time. By default, the KX122 sensor data is passed to
 the USB or BLE, depending on the connection. This can be changed to **main.c**
 file by adding/removing the sensor ID checks in the `application_event_handler
 function`.
@@ -193,7 +218,11 @@ app_timer_stop(m_blink_cdc);
 
 ### Requirements
 
-- RoKiX Sensor Node
+- RoKiX Sensor Node, nRF52832-DK, or nRF52840-DK
+- If using a DK board, a RoKiX Adapter Board and compatible sensor
+  boards are required. Adapter Board documentation can be found in the
+  RoKiX IoT Platform User's Guide, which is distributed as part of the
+  [RoKiX IoT Platform][rokix-iot-platform].
 - USB-certified Micro-USB cable
 - PC (tested with Windows OS)
   - [Segger Embedded Studio](https://www.segger.com/products/development-tools/embedded-studio/)
@@ -208,7 +237,7 @@ app_timer_stop(m_blink_cdc);
 [rokix-iot-platform]: https://github.com/RohmSemiconductor/RoKiX-IoT-Platform
 
 
-### Update bootloader
+### Update bootloader (RoKiX Sensor Node only)
 
 RoKiX Sensor Nodes include a default bootloader which does not allow DFU (Device
 Firmware Update) with unsigned firmware files. The default bootloader offers DFU
@@ -260,15 +289,19 @@ To get started with developing the firmware with SES, follow the following steps
 ## Build, flash and debug
 
 ### Build
- 
+
 1. Open SEGGER Embedded Studio.
 2. Use the `File->Open solution` menu to open the `rokixsensornode_ex.emProject`
    project file.
+3. Select the build configuration for your platform with the
+   `Build->Set Active Build Configuration` menu.
 3. Select build from the menu or press F7.
-4. The built application zip-file can be found in `Output\Debug\Exe`
+4. The built application zip and hex files can be found in `Output\Debug\Exe`
 
 
 ### Flash
+
+#### RoKiX Sensor Node
 
 Connect the RoKiX Sensor Node to the computer with a Micro-USB cable. Set the
 device to bootloader mode by pressing the button for longer than 3 seconds. A
@@ -278,7 +311,18 @@ following command to flash the device.
     nrfutil.exe dfu serial -pkg Output\Debug\Exe\xx.zip -p COMXX
 
 
+#### Nordic DK boards
+
+The Nordic DK boards can be flashed over USB directly from SEGGER Embedded
+Studio with `Target->Download rokixsensornode_ex`. The IDE will flash both
+the application and the SoftDevice to the board. Note that the nRF52840-DK
+has two Micro-USB connectors; flashing is done over the connector (J2) that
+is close to the coin cell holder.
+
+
 ### Trace and debug
+
+#### RoKiX Sensor Node
 
 Option 1:
 
@@ -299,6 +343,21 @@ done with a debug probe.
 
 [jlink-base]: https://www.segger.com/products/debug-probes/j-link/models/j-link-base/
 [tagconnect]: http://robomaa.fi/iprotoxi?product_id=1960
+
+
+#### Nordic DK boards
+
+The firmware uses RTT for diagnostic messages by default on the DK boards.
+Note that using the debug, flashing, and tracing features on the nRF52840-DK
+requires that a Micro-USB cable is connected to the connector (J2) that
+resides close to the coin cell holder.
+
+The RTT messages can be viewed with SEGGER Embedded Studio by running the
+application in a debugger (menu item `Debug->Go`) or by installing and using
+SEGGER's [RTT Viewer][rtt-viewer]. (The RTT Viewer is a part of the J-Link
+Software and Documentation Pack.)
+
+[rtt-viewer]: https://www.segger.com/products/debug-probes/j-link/tools/rtt-viewer/
 
 
 # Licenses

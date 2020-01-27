@@ -1,6 +1,6 @@
 /*
 The MIT License (MIT)
-Copyright (c) 2019 Kionix Inc.
+Copyright (c) 2020 Rohm Semiconductor
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -38,11 +38,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "nrfx_twim.h"
 
 #include "sensors.h"
-#include "KX122_drv.h"
-#include "KXG08_drv.h"
-#include "KMX62_drv.h"
-#include "BM1383AGLV_drv.h"
-#include "BM1422GMV_drv.h"
+#include "kx122_drv.h"
+#include "kxg08_drv.h"
+#include "kmx62_drv.h"
+#include "bm1383aglv_drv.h"
+#include "bm1422gmv_drv.h"
 #include "platform_functions.h"
 
 /* TWI module instance in use */
@@ -62,30 +62,30 @@ static void nrf52_gpiote_event_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_pola
     };
 
     /* Set dedicated data read function to KX122.*/
-    if(pin == KX122_INT1_PIN) {            
+    if (KX122_ENABLED && pin == KX122_INT1_PIN) {
         app_event.app_events.sensor_evt.sensor_read = KX122_get_raw_xyz;
         app_event.app_events.sensor_evt.sensor_id = KX122_ID;
     }
 
     /* Set dedicated data read function to KXG08.*/    
-    if(pin == KXG08_INT1_PIN) {        
+    if (KXG08_ENABLED && pin == KXG08_INT1_PIN) {
         app_event.app_events.sensor_evt.sensor_read = KXG08_get_raw_xyz;
         app_event.app_events.sensor_evt.sensor_id = KXG08_ID;
     }
 
     /* Set dedicated data read function to KMX62.*/    
-    if(pin == KMX62_INT1_PIN) {                
+    if (KMX62_ENABLED && pin == KMX62_INT1_PIN) {
         app_event.app_events.sensor_evt.sensor_read = KMX62_get_raw_xyz;
         app_event.app_events.sensor_evt.sensor_id = KMX62_ID;
     }
 
     /* Set dedicated data read function to BM1383AGLV.*/
-    if(pin == BM1383AGLV_INT1_PIN) {        
+    if (BM1383AGLV_ENABLED && pin == BM1383AGLV_INT1_PIN) {
         app_event.app_events.sensor_evt.sensor_read = BM1383AGLV_get_raw;
         app_event.app_events.sensor_evt.sensor_id = BM1383AGLV_ID;
     }
 
-    if (pin == BM1422GMV_INT1_PIN) {
+    if (BM1422GMV_ENABLED && pin == BM1422GMV_INT1_PIN) {
         app_event.app_events.sensor_evt.sensor_read = BM1422GMV_get_raw;
         app_event.app_events.sensor_evt.sensor_id = BM1422GMV_ID;
     }
@@ -165,8 +165,15 @@ void nrf52_twi_init (void)
     nrfx_twim_config_t twi_config = NRFX_TWIM_DEFAULT_CONFIG;
     
     twi_config.frequency  = NRF_TWIM_FREQ_400K;
+#if defined(K2_BOARD_CUSTOM)
     twi_config.scl        = K2_TWIM0_SCL_0_27_PIN;
     twi_config.sda        = K2_TWIM0_SDA_0_11_PIN;
+#elif defined(BOARD_PCA10040) || defined(BOARD_PCA10056)
+    twi_config.scl        = NRF_GPIO_PIN_MAP(0, 27);
+    twi_config.sda        = NRF_GPIO_PIN_MAP(0, 26);
+#else
+#error "unsupported board"
+#endif
     
     /** Blocking mode enabled */
     err_code = nrfx_twim_init(&m_twi, &twi_config, NULL, NULL);

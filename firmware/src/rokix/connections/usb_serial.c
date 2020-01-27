@@ -238,7 +238,11 @@ void usbd_serial_power_events_enable(void) {
 
 
 /**
- * @brief Function for initialize USB CDC ACM virtual port.*/
+ * @brief Function for initializing the USB CDC-ACM module.
+ *
+ * This function does not enable the power events. They must be enabled after
+ * the SoftDevice has been initialized by calling
+ * usbd_serial_power_events_enable(). */
 void usb_serial_init(void)
 {
     ret_code_t ret;
@@ -256,10 +260,6 @@ void usb_serial_init(void)
     app_usbd_class_inst_t const * class_cdc_acm = app_usbd_cdc_acm_class_inst_get(&m_app_cdc_acm);
     ret = app_usbd_class_append(class_cdc_acm);
     APP_ERROR_CHECK(ret);
-
-    ret = app_usbd_power_events_enable();
-    APP_ERROR_CHECK(ret);
-
 }
 
 
@@ -276,4 +276,10 @@ void usb_serial_tx(uint8_t *data, uint8_t size) {
             //NRF_LOG_INFO("CDC ACM unavailable=%d", ret);
         }        
     }
+}
+
+
+bool usb_serial_process_queue(void)
+{
+    return app_usbd_event_queue_process();
 }

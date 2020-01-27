@@ -1,6 +1,6 @@
 /*
 The MIT License (MIT)
-Copyright (c) 2019 Kionix Inc.
+Copyright (c) 2020 Rohm Semiconductor
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the
@@ -31,11 +31,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "nrf_log_default_backends.h"
 
 #include "sensors.h"
-#include "KX122_drv.h"
-#include "KXG08_drv.h"
-#include "KMX62_drv.h"
-#include "BM1383AGLV_drv.h"
-#include "BM1422GMV_drv.h"
+#include "kx122_drv.h"
+#include "kxg08_drv.h"
+#include "kmx62_drv.h"
+#include "bm1383aglv_drv.h"
+#include "bm1422gmv_drv.h"
 
 void KX122_driver_init(struct platform_functions * p_functions) {
 
@@ -164,11 +164,20 @@ void BM1422GMV_driver_init(struct platform_functions * p_functions) {
 /**@brief Init sensor drivers.*/
 void sensors_init(struct platform_functions * p_functions) {
     
-    /* Add new sensor init here. 
-       By default all the sensors are started. */
-    KX122_driver_init(p_functions);
-    KXG08_driver_init(p_functions);
-    KMX62_driver_init(p_functions);
-    BM1383AGLV_driver_init(p_functions);
-    BM1422GMV_driver_init(p_functions);
+    /* Add new sensor init here. */
+    if (KX122_ENABLED) {
+        KX122_driver_init(p_functions);
+    }
+    if (KXG08_ENABLED) {
+        KXG08_driver_init(p_functions);
+    }
+    if (KMX62_ENABLED) {
+        KMX62_driver_init(p_functions);
+    }
+    if (BM1383AGLV_ENABLED) {
+        BM1383AGLV_driver_init(p_functions);
+    }
+    if (BM1422GMV_ENABLED) {
+        BM1422GMV_driver_init(p_functions);
+    }
 }
